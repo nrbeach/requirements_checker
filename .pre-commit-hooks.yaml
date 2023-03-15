@@ -1,11 +1,7 @@
 - id: requirements-checker
   name: Check Requirements File
   description: Validates the requirements*.txt files contain the packages present in the virtualenv.
-    #  entry: requirements-checker
-    #entry: foobar
-    #language: script
-    #  language: python
-  entry: rq
+  entry: requirements_checker
   language: golang
-  args: ["--foo"]
+  args: ["--files", "requirements.txt,requirements-dev.txt"]
   types: [text]

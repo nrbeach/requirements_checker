@@ -30,7 +30,7 @@ Build or install to your `$GOPATH` using `go install`. By default
 `requirements.txt`. Different files can be specified by the `--files` flag.
 
 
-```shell
+```text
 # requirements_checker --files requirements.txt,requirements-dev.txt
 +----------+-------------+---------+----------------------+
 | MODULE   | ENVIRONMENT | DEFINED | FOUND                |

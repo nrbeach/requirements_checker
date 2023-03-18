@@ -1,7 +1,7 @@
-- id: requirements-checker
+- id: requirements_checker
   name: Check Requirements File
   description: Validates the requirements*.txt files contain the packages present in the virtualenv.
   entry: requirements_checker
   language: golang
-  args: ["--files", "requirements.txt,requirements-dev.txt"]
+  args: []
   types: [text]

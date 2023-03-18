@@ -1,5 +1,6 @@
-
 # Requirements Checker
+
+![Tests](https://github.com/nrbeach/requirements_checker/actions/workflows/test.yml/badge.svg?branch=main)
 
 ---
 

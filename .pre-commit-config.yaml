@@ -17,8 +17,3 @@ repos:
       hooks:
           - id: markdownlint
             args: [--config, markdownlint_config.json, -fix]
-
-    - repo: https://github.com/sirwart/ripsecrets
-      rev: v0.1.5  # Use latest tag on GitHub
-      hooks:
-          - id: ripsecrets

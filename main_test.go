@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"strconv"
@@ -25,6 +26,95 @@ type File struct {
 type PipReq struct {
 	name    string
 	version string
+}
+
+func TestEndToEndOutput(t *testing.T) {
+	cases := []struct {
+		testName       string
+		cliArgs        []string
+		packages       []PipReq
+		files          []File
+		expectedOutput []string
+	}{
+		{
+			"Output test, SUCCESS",
+			[]string{"requirements_checker"},
+			[]PipReq{{"foo", "1.2.3"}},
+			[]File{{"requirements.txt", "foo", "1.2.3", 0644}},
+			[]string{""},
+		},
+		{
+			"Output test quiet, SUCCESS ",
+			[]string{"requirements_checker", "--quiet"},
+			[]PipReq{{"foo", "1.2.3"}},
+			[]File{{"requirements.txt", "foo", "1.2.3", 0644}},
+			[]string{""},
+		},
+		{
+			"Output test, FAILURE",
+			[]string{"requirements_checker"},
+			[]PipReq{{"foo", "1.2.4"}},
+			[]File{{"requirements.txt", "foo", "1.2.3", 0644}},
+			[]string{"foo", "1.2.3", "1.2.4"},
+		},
+		{
+			"Output test missing env req, FAILURE",
+			[]string{"requirements_checker"},
+			[]PipReq{{"foo", "1.2.4"}},
+			[]File{{"requirements.txt", "bar", "1.2.3", 0644}},
+			[]string{"bar", "Missing"},
+		},
+		{
+			"Output test quiet, FAILURE",
+			[]string{"requirements_checker", "--quiet"},
+			[]PipReq{{"foo", "1.2.4"}},
+			[]File{{"requirements.txt", "foo", "1.2.3", 0644}},
+			[]string{""},
+		},
+		{
+			"Version test",
+			[]string{"requirements_checker", "--version"},
+			[]PipReq{{}},
+			[]File{{}},
+			[]string{"Version"},
+		},
+	}
+	for _, tc := range cases {
+
+		clearOldTestState()
+
+		AppFs = afero.NewMemMapFs()
+		AppFs.MkdirAll("", 0755)
+		_ = writeFiles(AppFs, tc.files, t)
+
+		pipFreezeOutput = generatePipFreezeOutput(tc.packages)
+		pipFreezeExitCode = 0
+		execCommand = fakeExecCommand
+		defer func() { execCommand = exec.Command }()
+
+		os.Args = []string{}
+		os.Args = []string(tc.cliArgs)
+
+		oldStdout := os.Stdout
+		r, w, _ := os.Pipe()
+		os.Stdout = w
+
+		_ = mainWrapper()
+
+		w.Close()
+		out, _ := ioutil.ReadAll(r)
+		os.Stdout = oldStdout
+
+		for _, s := range tc.expectedOutput {
+
+			if !strings.Contains(string(out), s) {
+				t.Errorf("\"%s\" - Did not find expected output '%s' in stdout", tc.testName, s)
+			}
+		}
+
+		os.Stdout = oldStdout
+
+	}
 }
 
 func TestEndToEnd(t *testing.T) {
@@ -125,6 +215,7 @@ func TestEndToEnd(t *testing.T) {
 	}
 
 	for _, tc := range cases {
+		clearOldTestState()
 		AppFs = afero.NewMemMapFs()
 		AppFs.MkdirAll("", 0755)
 		_ = writeFiles(AppFs, tc.files, t)
@@ -133,8 +224,11 @@ func TestEndToEnd(t *testing.T) {
 		pipFreezeExitCode = 0
 		execCommand = fakeExecCommand
 		defer func() { execCommand = exec.Command }()
+
 		os.Args = []string(tc.cliArgs)
+
 		rc := mainWrapper()
+
 		if rc != tc.exitCode {
 			t.Errorf("\"%s\" - Invalid exit code returned, expected %d, found %d", tc.testName, tc.exitCode, rc)
 		}
@@ -315,4 +409,11 @@ func generatePipFreezeOutput(packages []PipReq) string {
 		tempPackages = append(tempPackages, fmt.Sprintf("%s==%s", p.name, p.version))
 	}
 	return strings.Join(tempPackages, "\n")
+}
+
+func clearOldTestState() {
+	// testing in Go really sucks, why bother idempotency when you can manage test state yourself?
+	files = "requirements.txt"
+	quiet = false
+	version = false
 }

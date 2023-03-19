@@ -5,3 +5,4 @@
   language: golang
   args: []
   types: [text]
+  files: 'requirements*.txt'

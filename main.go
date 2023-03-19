@@ -14,7 +14,7 @@ import (
 	"github.com/spf13/afero"
 )
 
-const VERSION string = "0.1.0"
+const VERSION string = "0.1.1"
 
 var AppFs = afero.NewOsFs()
 
@@ -47,12 +47,12 @@ func init() {
 
 func mainWrapper() int {
 	// Testing in Go sucks
+	rc := SUCCESS
 	flag.Parse()
 	if version == true {
-		printVersion()
+		fmt.Printf("requirements_checker: Version %s\n", VERSION)
+		return rc
 	}
-
-	rc := SUCCESS
 
 	reqs := make(map[string]Requirement)
 	reqs = parseFiles(files, reqs)
@@ -74,7 +74,7 @@ func main() {
 }
 
 func generateTable(m map[string]Requirement) (table.Writer, int) {
-	rc := 0
+	rc := SUCCESS
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
 	t.AppendHeader(table.Row{"Module", "Environment", "Defined", "Found"})
@@ -90,13 +90,12 @@ func generateTable(m map[string]Requirement) (table.Writer, int) {
 				v.Found = "Environment"
 			}
 			t.AppendRow([]interface{}{k, v.Environment, v.Defined, v.Found})
-			rc = 1
+			rc = MISMATCH
 		}
 	}
 	return t, rc
 }
 func getEnvironment(m map[string]Requirement) (map[string]Requirement, error) {
-	var err error
 	out, err := execCommand("pip", "freeze").CombinedOutput()
 	if err != nil {
 		return m, err
@@ -152,9 +151,4 @@ func parseFiles(files string, reqs map[string]Requirement) map[string]Requiremen
 	}
 
 	return reqs
-}
-
-func printVersion() {
-	fmt.Printf("requirements_checker: Version %s\n", VERSION)
-	os.Exit(SUCCESS)
 }

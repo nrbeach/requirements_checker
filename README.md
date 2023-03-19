@@ -56,8 +56,8 @@ Contributions are welcome. Please ensure you add relevant test cases for any cha
 1. [Fork the project](https://github.com/nrbeach/requirements_checker/fork).
 1. Create your change branch (`git switch -c my-branch`)
 1. Add your modifications.
-1. Push to the branch (`git push origin my-branch`)
-1. Create new Pull Request
+1. Push to the branch (`git push origin my-branch`).
+1. Create new pull request.
 
 
 ## FAQ

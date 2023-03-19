@@ -4,5 +4,6 @@
   entry: requirements_checker
   language: golang
   args: []
-  types: [text]
-  files: 'requirements*.txt'
+  types: []
+  always_run: true
+  pass_filenames: false

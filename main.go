@@ -16,7 +16,10 @@ import (
 
 const VERSION string = "0.1.1"
 
-var AppFs = afero.NewOsFs()
+const (
+	SUCCESS  int = 0
+	MISMATCH     = 1
+)
 
 type Requirement struct {
 	Environment string
@@ -28,13 +31,15 @@ func (r Requirement) Cmp() bool {
 	return r.Environment == r.Defined
 }
 
+func NewRequirement() Requirement {
+	return Requirement{
+		Environment: "Missing",
+		Defined:     "Missing",
+	}
+}
+
+var AppFs = afero.NewOsFs()
 var execCommand = exec.Command
-
-const (
-	SUCCESS  int = 0
-	MISMATCH     = 1
-)
-
 var files string
 var quiet bool
 var version bool
@@ -60,7 +65,8 @@ func mainWrapper() int {
 	if err != nil {
 		log.Fatal(err)
 	}
-	t, rc := generateTable(reqs)
+	rc = validateResults(reqs)
+	t := generateTable(reqs)
 
 	if rc != 0 && !quiet {
 		t.Render()
@@ -73,28 +79,27 @@ func main() {
 	os.Exit(mainWrapper())
 }
 
-func generateTable(m map[string]Requirement) (table.Writer, int) {
-	rc := SUCCESS
+func validateResults(m map[string]Requirement) int {
+	for _, v := range m {
+		if !v.Cmp() {
+			return MISMATCH
+		}
+	}
+	return SUCCESS
+}
+
+func generateTable(m map[string]Requirement) table.Writer {
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
 	t.AppendHeader(table.Row{"Module", "Environment", "Defined", "Found"})
 	for k, v := range m {
 		if !v.Cmp() {
-			if len(v.Environment) == 0 {
-				v.Environment = "Missing"
-			}
-			if len(v.Defined) == 0 {
-				v.Defined = "Missing"
-			}
-			if len(v.Found) == 0 {
-				v.Found = "Environment"
-			}
 			t.AppendRow([]interface{}{k, v.Environment, v.Defined, v.Found})
-			rc = MISMATCH
 		}
 	}
-	return t, rc
+	return t
 }
+
 func getEnvironment(m map[string]Requirement) (map[string]Requirement, error) {
 	out, err := execCommand("pip", "freeze").CombinedOutput()
 	if err != nil {
@@ -110,10 +115,13 @@ func getEnvironment(m map[string]Requirement) (map[string]Requirement, error) {
 		version := module_ver[1]
 		_, ok := m[module]
 		if !ok {
-			m[module] = Requirement{}
+			m[module] = NewRequirement()
 		}
 		val := m[module]
 		val.Environment = version
+		if val.Defined == "Missing" {
+			val.Found = "Environment"
+		}
 		m[module] = val
 	}
 	return m, err
@@ -135,7 +143,7 @@ func readAndParseFile(f string, m map[string]Requirement) {
 		version := module_ver[1]
 		_, ok := m[module]
 		if !ok {
-			m[module] = Requirement{}
+			m[module] = NewRequirement()
 		}
 		val := m[module]
 		val.Defined = version
@@ -145,7 +153,6 @@ func readAndParseFile(f string, m map[string]Requirement) {
 }
 
 func parseFiles(files string, reqs map[string]Requirement) map[string]Requirement {
-
 	for _, f := range strings.Split(files, ",") {
 		readAndParseFile(f, reqs)
 	}

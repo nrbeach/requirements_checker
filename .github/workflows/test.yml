@@ -14,5 +14,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Install and Run pre-commit Hooks
+        run: |
+          pip install pre-commit
+          pre-commit install
+          pre-commit run --all-files
+
       - name: Run Go Test
         run: go test

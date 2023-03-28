@@ -36,3 +36,5 @@ jobs:
           git commit -m "Release v${{ steps.version.outputs.tag_version }}"
           git push --set-upstream origin release
           gh pr create -B main -H $(git branch --show-current) --title "PR for release" --body "Auto created PR"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}

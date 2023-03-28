@@ -1,0 +1,38 @@
+on:
+  workflow_dispatch:
+    inputs:
+      release:
+        type: choice
+        description: Release Type
+        options:
+        - MAJOR
+        - MINOR
+        - BUGFIX
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Pre-Commit
+        run: |
+          python -m pip install pre-commit
+          pre-commit install
+
+      - name: Config git
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git switch -c release
+
+      - name: Bump version
+        run: |
+          echo "tag_version=$(build/bump_version ${{ github.event.inputs.release }} main.go)" >> $GITHUB_OUTPUT
+        id: version
+
+      - name: Create PR
+        run: |
+          git tag "v${{ steps.version.outputs.tag_version }}"
+          git add main.go
+          git commit -m "Release v${{ steps.version.outputs.tag_version }}"
+          git push --set-upstream origin release
+          gh pr create -B main -H $(git branch --show-current) --title "PR for release" --body "Auto created PR"

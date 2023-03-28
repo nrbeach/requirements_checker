@@ -16,7 +16,7 @@ jobs:
 
       - name: Install and Run pre-commit Hooks
         run: |
-          pip install pre-commit
+          python -m pip install pre-commit
           pre-commit install
           pre-commit run --all-files
 

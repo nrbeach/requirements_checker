@@ -13,7 +13,6 @@ a pre-commit hook, but can be invoked as a CLI tool.
 ### Pre-Commit
 
 ---
-
 Add this to your `.pre-commit-config.yaml`:
 
 ```yaml
@@ -24,6 +23,8 @@ Add this to your `.pre-commit-config.yaml`:
 ```
 
 ### CLI Tool
+
+---
 
 Build or install to your `$GOPATH` using `go install`. By default
 `requirements_checker` will compare your virtual environment to
@@ -47,6 +48,8 @@ Build or install to your `$GOPATH` using `go install`. By default
 
 This was written using Go 1.20.2. Run the `setup` make target to install the required pre-commit hooks.
 
+Github actions can be developed and tested locally using [Act](https://github.com/nektos/act)
+
 ---
 
 ### Contributing
@@ -59,9 +62,8 @@ Contributions are welcome. Please ensure you add relevant test cases for any cha
 1. Push to the branch (`git push origin my-branch`).
 1. Create new pull request.
 
+---
 
 ## FAQ
-
----
 
 TODO

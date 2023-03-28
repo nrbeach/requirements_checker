@@ -31,6 +31,7 @@ jobs:
 
       - name: Create PR
         run: |
+          git pull
           git tag "v${{ steps.version.outputs.tag_version }}"
           git add main.go
           git commit -m "Release v${{ steps.version.outputs.tag_version }}"

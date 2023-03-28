@@ -1,0 +1,29 @@
+#!/bin/bash
+
+FILENAME="$2"
+VERSION=$(grep 'const VERSION string' "$FILENAME" | sed -E 's/[a-z,A-Z,=,", ]//g')
+
+MAJOR=$(echo "$VERSION" | cut -d '.' -f 1)
+MINOR=$(echo "$VERSION" | cut -d '.' -f 2)
+BUGFIX=$(echo "$VERSION" | cut -d '.' -f 3)
+
+
+if [ "$1" = "MAJOR" ]; then
+    NEW_MAJOR=$(expr "$MAJOR" + 1)
+    NEW_MINOR=0
+    NEW_BUGFIX=0
+elif [ "$1" = "MINOR" ]; then
+    NEW_MAJOR="$MAJOR"
+    NEW_MINOR=$(expr "$MINOR" + 1)
+    NEW_BUGFIX=0
+elif [ "$1" = "BUGFIX" ]; then
+    NEW_MAJOR="$MAJOR"
+    NEW_MINOR="$MINOR"
+    NEW_BUGFIX=$(expr "$BUGFIX" + 1)
+else
+    exit 1
+fi
+
+sed -i -E "s/const VERSION string = \"$MAJOR.$MINOR.$BUGFIX\"/const VERSION string = \"$NEW_MAJOR.$NEW_MINOR.$NEW_BUGFIX\"/" "$FILENAME"
+echo "$NEW_MAJOR.$NEW_MINOR.$NEW_BUGFIX"
+exit 0

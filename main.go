@@ -14,7 +14,7 @@ import (
 	"github.com/spf13/afero"
 )
 
-const VERSION string = "0.1.1"
+const VERSION string = "0.1.2"
 
 const (
 	SUCCESS  int = 0
